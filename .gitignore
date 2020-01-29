@@ -127,3 +127,11 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Data
+/PA1/train-labels-idx1-ubyte.gz
+/PA1/train-images-idx3-ubyte.gz
+/PA1/t10k-labels-idx1-ubyte.gz
+/PA1/t10k-images-idx3-ubyte.gz
+
+.idea
