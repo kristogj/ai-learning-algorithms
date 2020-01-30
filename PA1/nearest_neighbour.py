@@ -5,6 +5,10 @@ import scipy.stats as st
 import matplotlib.pyplot as plt
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
+from sklearn.mixture import GaussianMixture
+from collections import defaultdict
+from kmodes.kmodes import KModes
 
 
 def load_data(path, mode='train'):
@@ -37,6 +41,43 @@ def uniform_random_selection(Xtrain, ytrain, M):
     indices = np.random.choice(Xtrain.shape[0], M, replace=False)
 
     return Xtrain[indices], ytrain[indices]
+
+
+def k_means_sampler(Xtrain, ytrain, M):
+    """
+    Use K-means to find 10 clusters and sample and equal amount of images from each cluster
+    :param Xtrain: 60k images of digits
+    :param ytrain: 60k labels to the images
+    :param M: Number of samples you want to return
+    :return: M selected images with their corresponding labels
+    """
+    # Normalize images
+    # train_mean = np.mean(Xtrain)
+    # train_std = np.std(Xtrain)
+    # Xtrain_norm = (Xtrain - train_mean) / train_std
+
+    # PCA transform before k-means to make clustering go faster
+    pca = PCA(n_components=10)
+    Xtrain_transformed = pca.fit_transform(Xtrain)
+    kmeans = KMeans(n_clusters=10).fit(Xtrain_transformed)
+
+    # Iterate over the cluster label pr image and store them in a dictionary for later sampling
+    indices_pr_cluster = defaultdict(list)
+    for i, label in enumerate(kmeans.labels_):
+        indices_pr_cluster[label].append(i)
+
+    N = M // 10  # Number of samples pr cluster
+
+    # RANDOM FROM EACH CLUSTER -> ERROR RATE 0.10 when M=1000
+    final_indices = []
+    for cluster, indices in indices_pr_cluster.items():
+        # TODO: How do we sample from each cluster..
+        sample_indices = np.random.choice(indices, N, replace=False)
+        final_indices += list(sample_indices)
+    final_indices = np.array(final_indices)
+
+    return Xtrain[final_indices], ytrain[final_indices]
+
 
 
 def get_model(Xtrain, ytrain, algorithm='auto', metric='euclidean', n_neighbors=1):
@@ -80,9 +121,10 @@ if __name__ == '__main__':
     N_NEIGHBORS = 1  # Number of neighbors in k-NN (Assignments ask for 1-NN, so use k=1)
 
     # Settings for prototyping
-    M = 1000  # Number of images to sample
+    M = 5000  # Number of images to sample
     N_COMPONENTS = 40  # Number of components to use for the PCA
     K = 5  # Number of folds
+    sampler = k_means_sampler
 
     # Load data
     Xtrain, ytrain = load_data("./", mode="train")
@@ -92,7 +134,7 @@ if __name__ == '__main__':
     # In order to get error bars we need to do the prototyping k times
     for fold in range(1, K + 1):
         # Do prototyping
-        Xtrain_rand, ytrain_rand = uniform_random_selection(Xtrain, ytrain, M)
+        Xtrain_rand, ytrain_rand = sampler(Xtrain, ytrain, M)
 
         # To reduce dimensionality and run time we PCA transform the input
         pca = PCA(n_components=N_COMPONENTS)
