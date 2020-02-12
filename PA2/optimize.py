@@ -45,28 +45,6 @@ class CoordinateDescentRegression:
 
         self.weights[weight_index] += config[LEARNING_RATE] * gradient[weight_index]
 
-        # Stochastic
-        """
-        for i in indices:
-            # Compute the error between the prediction and the actual target
-            error = y[i] - predictions[i]
-            #print(error)
-
-            # Compute the gradient
-            gradient = error * X[i]
-            #print(gradient)
-            gradient = gradient.reshape((-1, 1))
-
-            a += gradient[weight_index]
-            #print(gradient[weight_index])
-
-            # Update the weight
-            self.weights[weight_index] += config[LEARNING_RATE] * gradient[weight_index]
-        
-        print(a)
-        input()
-        """
-
 
 def train(model, X, y, config):
     losses, accs = [], []
