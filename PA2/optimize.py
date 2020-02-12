@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from numpy import genfromtxt
 from sklearn.preprocessing import normalize
 from utils import sigmoid, get_data, cross_entropy_loss, accuracy
-
+from sklearn.metrics import log_loss
 import sys
 from io import StringIO
 from sklearn.linear_model import SGDClassifier
@@ -25,7 +25,7 @@ class CoordinateDescentRegression:
         a = np.dot(X, self.weights)
         return sigmoid(a)
 
-    def gradient_descent(self, X, y, predictions, epoch, config):
+    def gradient_descent(self, X, y, predictions, config):
         error = y - predictions
         gradient = error * X
         gradient = np.sum(gradient, axis=0)
@@ -37,9 +37,8 @@ class CoordinateDescentRegression:
             # Select weight index at random
             weight_index = np.random.randint(0, len(self.weights))
         elif ws == "best":
-            #weight_index = np.argmax(gradient)
-            # Loop over weight indexes one by one
-            weight_index = (epoch - 1) % X.shape[1]
+            # Select weight based on which have the highest gradient
+            weight_index = np.argmax(np.abs(gradient))
 
         self.weights[weight_index] += config[LEARNING_RATE] * gradient[weight_index]
 
@@ -49,9 +48,9 @@ def train(model, X, y, config):
     for epoch in range(1, config[EPOCHS] + 1):
         predictions = model.predict(X)
 
-        model.gradient_descent(X, y, predictions, epoch, config)
+        model.gradient_descent(X, y, predictions, config)
 
-        loss = cross_entropy_loss(y, predictions)
+        loss = log_loss(y, predictions)
         acc = accuracy(y, predictions)
 
         losses.append(loss)
@@ -93,13 +92,13 @@ if __name__ == '__main__':
     # Sklearn model
     model, sklearn_losses = sklearn_classifier(X, y, config)
 
-    # config[LEARNING_RATE] = 1e-5
     # Random selection coordinate descent
     print("Random Model")
     config[WEIGHT_SELECTION] = "random"
     rand_model = CoordinateDescentRegression(X.shape[1])
     rand_losses, rand_accs = train(rand_model, X, y, config)
 
+    # config[LEARNING_RATE] = 0.00001
     # Best selection coordinate descent
     print("BEST Model")
     config[WEIGHT_SELECTION] = "best"
