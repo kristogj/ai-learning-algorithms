@@ -25,10 +25,7 @@ class CoordinateDescentRegression:
         a = np.dot(X, self.weights)
         return sigmoid(a)
 
-    def stochastic_gradient_descent(self, X, y, predictions, epoch, config):
-        indices = list(range(y.shape[0]))
-        # np.random.shuffle(indices)
-
+    def gradient_descent(self, X, y, predictions, epoch, config):
         error = y - predictions
         gradient = error * X
         gradient = np.sum(gradient, axis=0)
@@ -40,6 +37,7 @@ class CoordinateDescentRegression:
             # Select weight index at random
             weight_index = np.random.randint(0, len(self.weights))
         elif ws == "best":
+            #weight_index = np.argmax(gradient)
             # Loop over weight indexes one by one
             weight_index = (epoch - 1) % X.shape[1]
 
@@ -51,7 +49,7 @@ def train(model, X, y, config):
     for epoch in range(1, config[EPOCHS] + 1):
         predictions = model.predict(X)
 
-        model.stochastic_gradient_descent(X, y, predictions, epoch, config)
+        model.gradient_descent(X, y, predictions, epoch, config)
 
         loss = cross_entropy_loss(y, predictions)
         acc = accuracy(y, predictions)
