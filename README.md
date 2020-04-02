@@ -1,1 +1,1 @@
-# CSE250B
+# AI Learning Algorithms
